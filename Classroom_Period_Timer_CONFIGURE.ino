@@ -6,6 +6,7 @@
 #include <FastLED.h>
 #include <SimpleTimer.h>
 #include <PubSubClient.h>
+#include <ESP8266WiFiSTA.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -14,11 +15,12 @@
 
 /*****************  LED LAYOUT AND SETUP *********************************/
 #define NUM_LEDS 57
+#define MQTT_TOPIC_NAME
 
 /*****************  WIFI AND CLOUDMQTT SETUP *****************************/
 const char* ssid = "YOURSSID";
 const char* password = "YOURWIFIPW";
-const char* mqtt_server = "io.adafruit.com";
+const char* mqtt_server = "ip.of.mqtt.broker";
 const int mqtt_port = 1883;
 const char *mqtt_user = "YOURMQTTUSER";
 const char *mqtt_pass = "YOURMQTTPW";
@@ -32,7 +34,7 @@ CRGB leds[NUM_LEDS];
 /*****************  GLOBAL VARIABLES  ************************************/
 
 
-const int ledPin = 4; //marked as D2 on the board
+const int ledPin = 5; //marked as D1 on the board
 
 int totalMinutes = 0;
 int ledsRemaining = 0;
@@ -80,14 +82,14 @@ void reconnect()
       Serial.println("connected");
       if(boot == true)
       {
-        client.publish("ADAFRUIT_USER/feeds/status","Rebooted");
+        client.publish(MQTT_TOPIC_NAME"/feeds/status","Rebooted");
         boot = false;
       }
       if(boot == false)
       {
-        client.publish("ADAFRUIT_USER/feeds/status","Reconnected"); 
+        client.publish(MQTT_TOPIC_NAME"/feeds/status","Reconnected"); 
       }
-      client.subscribe("ADAFRUIT_USER/feeds/bells");
+      client.subscribe(MQTT_TOPIC_NAME"/feeds/bells");
     } 
   }
 }
@@ -124,7 +126,7 @@ void subtractInterval()
 
 void checkIn()
 {
-  client.publish("ADAFRUIT_USER/feeds/status","OK");
+  client.publish(MQTT_TOPIC_NAME"/feeds/status","OK");
 }
 
 /*****************  SETUP FUNCTIONS  ****************************************/
@@ -134,15 +136,14 @@ void setup()
 {
   Serial.begin(115200);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  FastLED.addLeds<WS2812B, ledPin, RGB>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812B, ledPin, GRB>(leds, NUM_LEDS);
   
   // GPIO Pin Setup
-  WiFi.mode(WIFI_STA);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
   timer.setInterval(90000, checkIn);
-  ArduinoOTA.setHostname("classroom227");
+  ArduinoOTA.setHostname(mqtt_client_name);
   ArduinoOTA.begin(); 
 }
 
@@ -176,4 +177,3 @@ void ledTimer()
     leds[i] = CHSV (colorLED,255,192);
   }
 }
-
