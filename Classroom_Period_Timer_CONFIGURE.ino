@@ -15,7 +15,7 @@
 
 /*****************  LED LAYOUT AND SETUP *********************************/
 #define NUM_LEDS 57
-#define MQTT_TOPIC_NAME
+#define MQTT_TOPIC_NAME "MQTT-Topic"
 
 /*****************  WIFI AND CLOUDMQTT SETUP *****************************/
 const char* ssid = "YOURSSID";
@@ -54,6 +54,7 @@ void setup_wifi()
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
